@@ -123,47 +123,64 @@ eq("toolInputSummary basenames", toolInputSummary('{"file_path":"/a/b/notes.txt"
 
 // ---- state controls / watermark ----
 {
+  // Shape captured live from the GLM-5.1 backend (kernel 3.2.5): per-model
+  // available[] now carries contextWindow + lastUsed, thoughtLevel carries an
+  // `enabled` flag. We must ignore the extras and still parse cleanly.
   const params = {
     reason: "mode_changed",
     patch: {
       mode: { current: "build" },
       model: {
-        current: { modelId: "glm-4.6" },
-        available: [{ label: "GLM-4.6", providerLabel: "Zhipu", ref: { modelId: "glm-4.6", providerId: "bigmodel" } }],
+        current: { modelId: "glm-5.1", providerId: "bigmodel" },
+        lastUsed: { modelId: "glm-5.1", providerId: "bigmodel" },
+        available: [
+          { contextWindow: 200000, label: "glm-5.1", providerLabel: "BigModel", ref: { modelId: "glm-5.1", providerId: "bigmodel" } },
+        ],
       },
-      thoughtLevel: { current: "enabled", available: [{ value: "enabled" }, { value: "disabled" }] },
+      thoughtLevel: {
+        current: "disabled",
+        enabled: true,
+        available: [
+          { label: "enabled", value: "enabled" },
+          { label: "disabled", value: "disabled" },
+        ],
+      },
     },
   };
   const c = stateControls(params)!;
   ok("controls mode", c.mode === "build");
-  ok("controls model", c.models.length === 1 && c.modelCurrent === "glm-4.6");
-  ok("controls thought", c.thoughtLevels.length === 2 && c.thoughtCurrent === "enabled");
+  ok("controls model (glm-5.1, extras ignored)", c.models.length === 1 && c.modelCurrent === "glm-5.1");
+  ok("controls thought", c.thoughtLevels.length === 2 && c.thoughtCurrent === "disabled");
   eq("watermark walk", stateWatermark({ patch: { deep: { contextUsed: 1200, contextWindow: 128000 } } }), [1200, 128000]);
   ok("turn error detects failed", stateTurnError({ patch: { status: "failed" } }) === "failed");
 }
 
 // ---- runtimeModel from real config ----
 {
+  // Mirrors ~/.zcode/cli/config.json on the GLM-5.1 backend: provider
+  // kind="anthropic", model.main="bigmodel/glm-5.1", a `lite` model, and the
+  // glm-5.1/glm-4.7 model line. Verified live: this runtimeModel resumes a
+  // session without ZCODE_RUNTIME_MODEL_UNAVAILABLE.
   const config = JSON.stringify({
-    model: { main: "bigmodel/glm-4.6" },
+    model: { main: "bigmodel/glm-5.1", lite: "bigmodel/glm-4.7" },
     provider: {
       bigmodel: {
-        kind: "openai-compatible",
-        name: "Zhipu",
-        models: { "glm-4.6": { name: "GLM-4.6" }, "glm-4.5": { name: "GLM-4.5" } },
-        options: { baseURL: "https://open.bigmodel.cn/api", apiKey: "dummy-api-key-for-test" },
+        kind: "anthropic",
+        name: "Bigmodel Coding Plan",
+        models: { "glm-5.1": { name: "GLM-5.1" }, "glm-4.7": { name: "GLM-4.7" } },
+        options: { apiKeyRequired: true, baseURL: "https://open.bigmodel.cn/api/anthropic", apiKey: "dummy-api-key-for-test" },
       },
     },
   });
   const rm = buildRuntimeModel(config, 123)!;
-  ok("runtimeModel model ref", rm.model.providerId === "bigmodel" && rm.model.modelId === "glm-4.6");
-  ok("runtimeModel provider kind", rm.provider.kind === "openai-compatible");
+  ok("runtimeModel model ref", rm.model.providerId === "bigmodel" && rm.model.modelId === "glm-5.1");
+  ok("runtimeModel provider kind anthropic", rm.provider.kind === "anthropic");
   ok(
     "runtimeModel inline apiKey union",
     rm.provider.apiKey.source === "inline" && rm.provider.apiKey.value === "dummy-api-key-for-test",
   );
   ok("runtimeModel models list", rm.provider.models.length === 2);
-  ok("runtimeModel baseURL", rm.provider.baseURL === "https://open.bigmodel.cn/api");
+  ok("runtimeModel baseURL", rm.provider.baseURL === "https://open.bigmodel.cn/api/anthropic");
 }
 
 // ---- rewind ----
