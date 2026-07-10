@@ -8,6 +8,7 @@ esbuild.js
 tsconfig.json
 **/*.map
 **/*.ts
+test/**
 dist/selftest.cjs
 docs/**
 .github/**

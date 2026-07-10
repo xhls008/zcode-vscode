@@ -2,7 +2,26 @@
 
 All notable changes to the ZCode VSCode extension are documented here.
 
-## [0.1.0] — Unreleased
+## [0.2.0] - 2026-07-10
+
+### Added
+
+- GFM-style Markdown tables render inside a horizontally scrollable container,
+  matching the table usability introduced by ZCode desktop 3.3.4.
+- A DOM-free webview Markdown smoke test now covers table rendering, escaping,
+  inline formatting, and non-table pipe text in CI.
+
+### Compatibility
+
+- Verified the extension end to end against ZCode desktop 3.3.4 and CLI kernel
+  0.15.2: app-server connect, state controls, streaming send, and turn completion.
+- Verified ZCode 3.3.4 background Bash tasks stay compatible with the existing
+  tool-chip pipeline: the background launch and result-read events both render
+  through the standard tool start/finish protocol.
+- Corrected the README architecture note: ZCode desktop is a custom Electron app;
+  this extension targets VSCode and compatible editors while reusing its kernel.
+
+## [0.1.0] - 2026-07-10
 
 Initial release. A VSCode frontend for the ZCode CLI kernel, the desktop
 counterpart to the terminal `zcode-tui`. Both drive the same kernel

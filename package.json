@@ -2,7 +2,7 @@
   "name": "zcode-vscode",
   "displayName": "ZCode (Unofficial)",
   "description": "Unofficial VSCode frontend for the ZCode CLI kernel — streaming chat, tool approvals, model/mode control, and checkpoint rewind.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "flybear",
   "license": "MIT",
   "repository": {
@@ -143,7 +143,7 @@
     "watch": "node esbuild.js --watch",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
-    "selftest": "esbuild test/selftest.ts --bundle --platform=node --format=cjs --outfile=dist/selftest.cjs && node dist/selftest.cjs",
+    "selftest": "esbuild test/selftest.ts --bundle --platform=node --format=cjs --outfile=dist/selftest.cjs && node dist/selftest.cjs && node test/webview-smoke.cjs",
     "package": "npm run check-types && node esbuild.js --production && vsce package --no-dependencies"
   },
   "devDependencies": {

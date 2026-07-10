@@ -99,6 +99,22 @@
         continue;
       }
 
+      // GFM table: a `| … |` header row immediately followed by a `|---|---|`
+      // separator. Rendered inside a horizontally-scrollable container so wide
+      // tables scroll instead of overflowing the panel (matches ZCode 3.3.4).
+      if (line.includes("|") && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
+        closeList();
+        const header = splitTableRow(line);
+        i += 2; // consume header + separator
+        const rows = [];
+        while (i < lines.length && lines[i].trim() !== "" && lines[i].includes("|")) {
+          rows.push(splitTableRow(lines[i]));
+          i++;
+        }
+        html += renderTable(header, rows);
+        continue;
+      }
+
       const quote = line.match(/^>\s?(.*)$/);
       if (quote) {
         closeList();
@@ -156,6 +172,46 @@
     }
     closeList();
     return html;
+  }
+
+  // A separator row like `|---|:--:|` — only pipes, dashes, colons, spaces,
+  // and at least one dash.
+  function isTableSeparator(line) {
+    return /^\s*\|?[\s:|-]+\|?\s*$/.test(line) && line.includes("-");
+  }
+
+  function splitTableRow(line) {
+    return line
+      .trim()
+      .replace(/^\|/, "")
+      .replace(/\|$/, "")
+      .split("|")
+      .map(function (c) {
+        return c.trim();
+      });
+  }
+
+  function renderTable(header, rows) {
+    let h = '<div class="table-scroll"><table><thead><tr>';
+    header.forEach(function (c) {
+      h += "<th>" + renderInline(c) + "</th>";
+    });
+    h += "</tr></thead><tbody>";
+    rows.forEach(function (r) {
+      h += "<tr>";
+      for (let k = 0; k < header.length; k++) {
+        h += "<td>" + renderInline(r[k] || "") + "</td>";
+      }
+      h += "</tr>";
+    });
+    return h + "</tbody></table></div>";
+  }
+
+  // Keep the renderer testable without booting a VSCode webview. The flag is
+  // only supplied by test/webview-smoke.cjs; production returns false here.
+  if (typeof globalThis !== "undefined" && globalThis.__ZCODE_MARKDOWN_TEST__) {
+    globalThis.__ZCODE_MARKDOWN__ = { renderMarkdown };
+    return;
   }
 
   // ---- transcript bubbles ----------------------------------------------

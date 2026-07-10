@@ -12,8 +12,10 @@ and checkpoint rewind inside an editor panel.
 > **非官方项目：** 本扩展由社区独立开发，与智谱 AI 及 ZCode 官方团队无隶属、
 > 授权或背书关系。
 
-> ZCode is itself a VSCode fork, so this standard extension runs inside ZCode,
-> stock VSCode, and other forks (Cursor, …) alike.
+> Note: the ZCode **desktop app** is a custom Electron + React/Tailwind app, not
+> a VSCode fork — so this extension does not load inside ZCode itself. It targets
+> stock **VSCode** and VSCode-compatible editors (Cursor, Windsurf, …), driving
+> the same ZCode CLI kernel the desktop app ships.
 
 ## Requirements
 
@@ -24,6 +26,8 @@ and checkpoint rewind inside an editor panel.
 - You must be **logged in** to ZCode (the kernel reads `~/.zcode/cli/config.json`).
 - The kernel needs Node ≥ 22.5; the extension runs it via ZCode's embedded
   Electron-as-Node by default, so a stale system `node` is fine.
+- Compatibility is verified against **ZCode desktop 3.3.4 / CLI kernel 0.15.2**.
+  The resolver automatically selects the newest locally extracted ZCode package.
 
 ## Features
 
@@ -37,6 +41,11 @@ and checkpoint rewind inside an editor panel.
 | Tool permission | `interaction/requestPermission` |
 | Checkpoint rewind | `session/rewind` → `session/applyFileRewind` |
 | Resume session | `session/resume` + reconstructed `runtimeModel` |
+
+Assistant Markdown tables use a horizontally scrollable GFM-style renderer,
+matching the table usability added in ZCode desktop 3.3.4.
+Background Bash tasks introduced by ZCode 3.3.4 continue to surface through the
+existing running/finished tool chips and result output.
 
 ## Build
 
@@ -53,7 +62,7 @@ Press <kbd>F5</kbd> in VSCode to launch an Extension Development Host.
 Download the `.vsix` from the latest GitHub Release, then run:
 
 ```bash
-code --install-extension zcode-vscode-0.1.0.vsix
+code --install-extension zcode-vscode-0.2.0.vsix
 ```
 
 ## Layout
