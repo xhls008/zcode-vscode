@@ -39,6 +39,7 @@ and checkpoint rewind inside an editor panel.
 | Compact context | `session/compact` |
 | Plan approval | `interaction/requestUserInput` |
 | Tool permission | `interaction/requestPermission` |
+| Background task lifecycle | `background_task_*` events → safe system notices |
 | Checkpoint rewind | `session/rewind` → `session/applyFileRewind` |
 | Resume session | `session/resume` + reconstructed `runtimeModel` |
 
@@ -46,6 +47,8 @@ Assistant Markdown tables use a horizontally scrollable GFM-style renderer,
 matching the table usability added in ZCode desktop 3.3.4.
 Background Bash tasks introduced by ZCode 3.3.4 continue to surface through the
 existing running/finished tool chips and result output.
+The extension also understands `background_task_*` lifecycle events and shows a
+safe notice when an app-server version emits them.
 
 ## Build
 

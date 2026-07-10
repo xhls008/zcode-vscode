@@ -10,6 +10,8 @@ All notable changes to the ZCode VSCode extension are documented here.
   matching the table usability introduced by ZCode desktop 3.3.4.
 - A DOM-free webview Markdown smoke test now covers table rendering, escaping,
   inline formatting, and non-table pipe text in CI.
+- Background task lifecycle events are decoded and, when emitted by app-server,
+  shown as concise system notices without repeating the full shell command.
 
 ### Compatibility
 
@@ -18,6 +20,11 @@ All notable changes to the ZCode VSCode extension are documented here.
 - Verified ZCode 3.3.4 background Bash tasks stay compatible with the existing
   tool-chip pipeline: the background launch and result-read events both render
   through the standard tool start/finish protocol.
+- Defensively decode the kernel's `background_task_started` / `_updated` /
+  `_completed` events (taskId, command, status, pid) into a session notice so
+  they are never silently dropped. The tested 0.15.2 app-server exposed the
+  background Bash flow through standard Bash/Read tool events and did not emit
+  separate lifecycle messages in that run.
 - Corrected the README architecture note: ZCode desktop is a custom Electron app;
   this extension targets VSCode and compatible editors while reusing its kernel.
 

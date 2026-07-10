@@ -17,6 +17,7 @@ import {
 import { buildRuntimeModel } from "../src/kernel/runtimeModel";
 import { rewindFailure, conversationTarget, checkpointShortId } from "../src/kernel/rewind";
 import { parseSessionList, parseResumeMessages, parseSteerResult } from "../src/kernel/sessions";
+import { formatBackgroundTask } from "../src/session";
 
 let pass = 0;
 let fail = 0;
@@ -56,6 +57,19 @@ function eq(name: string, a: unknown, b: unknown): void {
   );
   ok("session-level event via params.type", sess?.type === "event" && sess.event.kind === "checkpoint.created");
   eq("checkpoint fileCount", (sess as any).event.fileCount, 2);
+
+  // Background tasks surfaced by ZCode 3.3.4.
+  const bg = decodeMessage(
+    '{"method":"session/event","params":{"type":"background_task_started","payload":{"taskId":"bg-1","toolName":"Bash","toolCallId":"t9","command":"sleep 12","status":"running","pid":4242}}}',
+  );
+  ok("background_task_started decoded", bg?.type === "event" && bg.event.kind === "background_task_started");
+  eq("background task fields", (bg as any).event.command, "sleep 12");
+  eq("background task pid", (bg as any).event.pid, 4242);
+  eq("background task status", (bg as any).event.status, "running");
+  eq("background task taskId", (bg as any).event.taskId, "bg-1");
+  const notice = formatBackgroundTask((bg as any).event);
+  ok("background task notice", notice.includes("background Bash started") && notice.includes("bg-1") && notice.includes("pid 4242"));
+  ok("background task notice does not repeat command", !notice.includes("sleep 12"));
 }
 
 // ---- turn accumulation ----

@@ -12,6 +12,7 @@ import { AppServerClient, AppServerError, Disposable } from "./kernel/client";
 import { resolveKernel } from "./kernel/resolve";
 import { buildRuntimeModel } from "./kernel/runtimeModel";
 import {
+  AppServerEvent,
   AppServerMessage,
   Json,
   ModelChoice,
@@ -388,6 +389,17 @@ export class SessionController extends EventEmitter {
         if (event.kind === "rewind.triggered") {
           this.lastRewind = { strategy: event.strategy, reason: event.reason };
         }
+        // ZCode 3.3.4 background tasks (subagent/bash backgrounding). These are
+        // session-level and may arrive outside a turn, so handle them before the
+        // turn guard instead of silently dropping their lifecycle updates.
+        if (
+          event.kind === "background_task_started" ||
+          event.kind === "background_task_updated" ||
+          event.kind === "background_task_completed"
+        ) {
+          this.emit("notice", formatBackgroundTask(event));
+          return;
+        }
         if (!this.turn || !this.turnActive) {
           return;
         }
@@ -518,6 +530,26 @@ export class SessionController extends EventEmitter {
 
 function refModelId(reference: Json): string | undefined {
   return typeof reference?.modelId === "string" ? reference.modelId : undefined;
+}
+
+/** One-line summary of a background_task_* event for a system notice. */
+export function formatBackgroundTask(event: AppServerEvent): string {
+  const verb =
+    event.kind === "background_task_started"
+      ? "started"
+      : event.kind === "background_task_completed"
+        ? event.status ?? "completed"
+        : "updated";
+  const tool = event.toolName || "task";
+  let line = `background ${tool} ${verb}`;
+  if (event.taskId) {
+    const id = event.taskId.length > 20 ? `${event.taskId.slice(0, 17)}…` : event.taskId;
+    line += ` · ${id}`;
+  }
+  if (event.pid !== undefined) {
+    line += ` (pid ${event.pid})`;
+  }
+  return line;
 }
 
 function delay(ms: number): Promise<void> {

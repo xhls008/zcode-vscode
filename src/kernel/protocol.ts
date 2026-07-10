@@ -119,6 +119,14 @@ export interface AppServerEvent {
   strategy?: string;
   /** `payload.reason` (rewind.triggered). */
   reason?: string;
+  /** `payload.taskId` — background_task_* events (subagent/bash backgrounding). */
+  taskId?: string;
+  /** `payload.command` — the backgrounded shell command. */
+  command?: string;
+  /** `payload.status` — background task status (running|completed|lost…). */
+  status?: string;
+  /** `payload.pid` — background task process id. */
+  pid?: number;
 }
 
 function asStr(v: Json): string | undefined {
@@ -195,6 +203,10 @@ export function decodeMessage(line: string): AppServerMessage | undefined {
           targetMessageId: asStr(payload.targetMessageId) ?? asStr(payload.messageId),
           strategy: asStr(payload.strategy),
           reason: asStr(payload.reason),
+          taskId: asStr(payload.taskId),
+          command: asStr(payload.command),
+          status: asStr(payload.status),
+          pid: asNum(payload.pid),
         },
       };
     }
