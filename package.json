@@ -1,0 +1,159 @@
+{
+  "name": "zcode-vscode",
+  "displayName": "ZCode (Unofficial)",
+  "description": "Unofficial VSCode frontend for the ZCode CLI kernel — streaming chat, tool approvals, model/mode control, and checkpoint rewind.",
+  "version": "0.1.0",
+  "publisher": "flybear",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xhls008/zcode-vscode"
+  },
+  "homepage": "https://github.com/xhls008/zcode-vscode#readme",
+  "bugs": {
+    "url": "https://github.com/xhls008/zcode-vscode/issues"
+  },
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "categories": [
+    "AI",
+    "Chat",
+    "Other"
+  ],
+  "keywords": [
+    "zcode",
+    "glm",
+    "ai",
+    "chat",
+    "agent"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "zcode",
+          "title": "ZCode",
+          "icon": "assets/panel-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "zcode": [
+        {
+          "type": "webview",
+          "id": "zcode.chatView",
+          "name": "Chat",
+          "icon": "assets/panel-icon.svg"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "zcode.newSession",
+        "title": "ZCode: New Session",
+        "icon": "$(add)"
+      },
+      {
+        "command": "zcode.cancel",
+        "title": "ZCode: Cancel Turn",
+        "icon": "$(stop-circle)"
+      },
+      {
+        "command": "zcode.pickModel",
+        "title": "ZCode: Switch Model",
+        "icon": "$(chip)"
+      },
+      {
+        "command": "zcode.pickMode",
+        "title": "ZCode: Switch Mode"
+      },
+      {
+        "command": "zcode.pickThought",
+        "title": "ZCode: Cycle Thought Level"
+      },
+      {
+        "command": "zcode.compact",
+        "title": "ZCode: Compact Context"
+      },
+      {
+        "command": "zcode.rewind",
+        "title": "ZCode: Rewind to Checkpoint",
+        "icon": "$(history)"
+      },
+      {
+        "command": "zcode.resumeSession",
+        "title": "ZCode: Resume Session",
+        "icon": "$(list-unordered)"
+      },
+      {
+        "command": "zcode.focusInput",
+        "title": "ZCode: Focus Chat Input"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "zcode.newSession",
+          "when": "view == zcode.chatView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "zcode.resumeSession",
+          "when": "view == zcode.chatView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "zcode.rewind",
+          "when": "view == zcode.chatView",
+          "group": "navigation@3"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ZCode",
+      "properties": {
+        "zcode.appDir": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Path to the ZCode desktop package directory (the one containing `resources/glm/zcode.cjs`). Leave empty to auto-detect (`$ZCODE_APP`, `/opt/ZCode`, `~/.local/opt/zcode/*/opt/ZCode`)."
+        },
+        "zcode.forceSystemNode": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Run the kernel with the system `node` instead of ZCode's embedded Electron-as-Node. The kernel needs Node ≥ 22.5 (for `node:sqlite`), so only enable this if your system node is new enough."
+        },
+        "zcode.thoughtDefault": {
+          "type": "string",
+          "enum": [
+            "enabled",
+            "disabled"
+          ],
+          "default": "enabled",
+          "description": "Thought level applied when a new session starts, if the kernel exposes the control."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run check-types && node esbuild.js --production",
+    "compile": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "selftest": "esbuild test/selftest.ts --bundle --platform=node --format=cjs --outfile=dist/selftest.cjs && node dist/selftest.cjs",
+    "package": "npm run check-types && node esbuild.js --production && vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.84.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@vscode/vsce": "^2.24.0",
+    "esbuild": "^0.20.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.4.0"
+  }
+}
